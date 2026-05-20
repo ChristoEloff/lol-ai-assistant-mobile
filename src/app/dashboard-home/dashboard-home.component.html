@@ -1,0 +1,174 @@
+<div class="dashboard-home-container">
+  <!-- Top Search Bar -->
+  <div class="search-section">
+    <app-profile-search-bar (search)="onSearchSelected($event)"></app-profile-search-bar>
+  </div>
+
+  <!-- Grid Layout -->
+  <div class="dashboard-grid">
+    
+    <!-- COLUMN 1: Personal Stats Card -->
+    <div class="glass-card left-card">
+      <div class="card-header">
+        <span class="pulse-dot"></span>
+        <h2>Personal Telemetry</h2>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loadingProfile()" class="loader-container">
+        <div class="hex-spinner"></div>
+        <p>Syncing Riot Database...</p>
+      </div>
+
+      <!-- Loaded State -->
+      <div *ngIf="!loadingProfile() && userProfile()" class="card-content">
+        <div class="profile-summary">
+          <div class="avatar-glow">
+            <span class="lvl-badge">Lvl {{ userProfile()?.summonerLevel }}</span>
+            <span class="icon-id-label">Icon #{{ userProfile()?.profileIconId }}</span>
+          </div>
+          <div class="profile-names">
+            <h3>{{ userProfile()?.gameName }}</h3>
+            <span class="tag-badge">#{{ userProfile()?.tagLine }}</span>
+          </div>
+        </div>
+
+        <!-- Rank Stats -->
+        <div class="section-title">Ranked League Entry</div>
+        <div class="rank-display" *ngIf="soloQEntry() as entry; else unranked">
+          <div class="rank-info">
+            <span class="rank-tier">{{ entry.tier }} {{ entry.rank }}</span>
+            <span class="rank-lp">{{ entry.leaguePoints }} LP</span>
+          </div>
+          <div class="winrate-section">
+            <div class="winrate-bar">
+              <div class="win-fill" [style.width.%]="winRate()"></div>
+            </div>
+            <div class="winrate-details">
+              <span>{{ entry.wins }}W / {{ entry.losses }}L</span>
+              <span class="rate-pct">{{ winRate() }}% Win Rate</span>
+            </div>
+          </div>
+        </div>
+        <ng-template #unranked>
+          <p class="no-data-msg">No Ranked Solo/Duo history found.</p>
+        </ng-template>
+
+        <!-- Mastery Stats -->
+        <div class="section-title">Top Champion Masteries</div>
+        <div class="masteries-list">
+          <div class="mastery-item" *ngFor="let champ of userProfile()?.topChampions; let i = index">
+            <div class="mastery-rank">#{{ i + 1 }}</div>
+            <div class="mastery-info">
+              <span class="champ-name">{{ champ.championName }}</span>
+              <span class="champ-points">{{ (champ.championPoints / 1000).toFixed(1) }}k Mastery Points</span>
+            </div>
+            <div class="mastery-lvl">
+              <span>Lvl {{ champ.championLevel }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMN 2: Live Game & Recent Activity Card -->
+    <div class="glass-card center-card">
+      <div class="card-header">
+        <h2>Live & Recent Activity</h2>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loadingProfile()" class="loader-container">
+        <div class="hex-spinner"></div>
+        <p>Retrieving Match History...</p>
+      </div>
+
+      <!-- Loaded State -->
+      <div *ngIf="!loadingProfile() && userProfile()" class="card-content">
+        
+        <!-- Live Game Widget -->
+        <div class="spectator-widget" *ngIf="userProfile()?.activeGame as active; else notInGame">
+          <div class="live-badge">
+            <span class="live-dot"></span>
+            LIVE GAME DETECTED
+          </div>
+          <div class="live-details">
+            <span class="live-champ">{{ active.championName }}</span>
+            <span class="live-mode">{{ active.gameMode }} — {{ formatDuration(active.gameLengthSeconds) }}</span>
+          </div>
+        </div>
+        <ng-template #notInGame>
+          <div class="spectator-widget offline">
+            <span class="offline-dot"></span>
+            Player not in active game
+          </div>
+        </ng-template>
+
+        <!-- Recent Matches -->
+        <div class="section-title">Recent Matches</div>
+        <div class="matches-list">
+          <div class="match-item" *ngFor="let match of userProfile()?.recentMatches" [class.win]="match.win" [class.loss]="!match.win">
+            <div class="match-bar"></div>
+            <div class="match-body">
+              <div class="match-meta-row">
+                <span class="match-champ-played">{{ match.championName }}</span>
+                <span class="match-outcome" [class.text-win]="match.win" [class.text-loss]="!match.win">
+                  {{ match.win ? 'Victory' : 'Defeat' }}
+                </span>
+              </div>
+              <div class="match-stats-row">
+                <span class="match-kda">{{ match.kills }} / {{ match.deaths }} / {{ match.assists }}</span>
+                <span class="match-time">{{ match.gameMode }} ({{ formatDuration(match.gameDurationSeconds) }})</span>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="userProfile()?.recentMatches?.length === 0" class="no-data-msg">
+            No recent matches found.
+          </div>
+        </div>
+
+        <!-- Free Champion Rotation -->
+        <div class="section-title">Weekly Free Champions</div>
+        <div class="rotation-container">
+          <div class="rotation-badges">
+            <span class="rotation-badge" *ngFor="let name of userProfile()?.freeChampionNames">{{ name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMN 3: Meta Tier List Card -->
+    <div class="glass-card right-card">
+      <div class="card-header">
+        <span class="tier-indicator">Patch {{ userProfile()?.currentPatch || '16.10' }}</span>
+        <h2>Meta Tier List</h2>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loadingMeta()" class="loader-container">
+        <div class="hex-spinner"></div>
+        <p>Crunching Winrates...</p>
+      </div>
+
+      <!-- Loaded State -->
+      <div *ngIf="!loadingMeta() && metaChampions().length > 0" class="card-content">
+        <div class="meta-list">
+          <div class="meta-item" *ngFor="let meta of metaChampions(); let i = index">
+            <div class="meta-rank-badge" [class]="'rank-' + (i + 1)">
+              {{ i + 1 }}
+            </div>
+            <div class="meta-details">
+              <span class="meta-champ">{{ meta.championName }}</span>
+              <span class="meta-role">{{ meta.role }}</span>
+            </div>
+            <div class="meta-stats">
+              <span class="meta-winrate">{{ meta.winRate }}% WR</span>
+              <span class="meta-tier-pill" [class]="meta.tier">{{ meta.tier }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

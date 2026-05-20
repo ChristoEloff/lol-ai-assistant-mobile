@@ -1,0 +1,326 @@
+<div class="mobile-container">
+  <!-- Glowing Background Effects -->
+  <div class="glow-orb top-orb"></div>
+  <div class="glow-orb bottom-orb"></div>
+
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <div class="header-logo">
+      <span class="logo-symbol">▲</span>
+      <span class="logo-text">LOL AI ASSIST</span>
+    </div>
+    
+    <div class="connection-status" [class.connected]="sessionService.isConnected()" [class.reconnecting]="sessionService.isReconnecting()">
+      <span class="status-dot"></span>
+      <span class="status-text">
+        @if (sessionService.isConnected()) {
+          LIVE
+        } @else if (sessionService.isReconnecting()) {
+          SYNC...
+        } @else {
+          OFFLINE
+        }
+      </span>
+    </div>
+  </header>
+
+  <!-- Tab Switcher (Lobby/Game vs Stats/Meta) -->
+  <div class="app-nav-tabs">
+    <button type="button" class="nav-tab-btn" [class.active]="currentTab() === 'game'" (click)="currentTab.set('game')">Lobby & Game</button>
+    <button type="button" class="nav-tab-btn" [class.active]="currentTab() === 'dashboard'" (click)="currentTab.set('dashboard')">Stats & Meta</button>
+  </div>
+
+  <!-- Phase Switcher Pills (Allows testing the view swap) -->
+  @if (currentTab() === 'game') {
+    <nav class="phase-switcher-nav animate-fade">
+      <div class="pills-container">
+        <button 
+          type="button"
+          class="phase-tab-pill" 
+          [class.active]="sessionService.state().activePhase === ActivePhase.ChampSelect"
+          (click)="setPhase(ActivePhase.ChampSelect)">
+          Draft
+        </button>
+        <button 
+          type="button"
+          class="phase-tab-pill" 
+          [class.active]="sessionService.state().activePhase === ActivePhase.InGame"
+          (click)="setPhase(ActivePhase.InGame)">
+          In-Game
+        </button>
+        <button 
+          type="button"
+          class="phase-tab-pill" 
+          [class.active]="sessionService.state().activePhase === ActivePhase.PostGame"
+          (click)="setPhase(ActivePhase.PostGame)">
+          Post-Game
+        </button>
+      </div>
+    </nav>
+  }
+
+  <!-- Content Container (Switches based on ActivePhase) -->
+  <main class="mobile-main-content">
+    @if (currentTab() === 'dashboard') {
+      <app-dashboard-home class="animate-fade"></app-dashboard-home>
+    } @else {
+      <!-- VIEW 1: ChampSelect (Draft Phase) -->
+      @if (sessionService.state().activePhase === ActivePhase.ChampSelect) {
+      <div class="phase-view champ-select-view animate-fade">
+        <div class="glass-card">
+          <div class="view-title-block">
+            <span class="view-icon">⚔️</span>
+            <h2>Champ Select Setup</h2>
+            <p>Configure team matchups and runes prior to game launch.</p>
+          </div>
+
+          <div class="form-stack">
+            <!-- Mastery Badges (Ally only) -->
+            @if (sessionService.userProfile()?.topChampions; as topChamps) {
+              <div class="mastery-picks-container">
+                <span class="picks-title">Top Mastery Picks:</span>
+                <div class="mastery-badges">
+                  @for (champ of topChamps; track champ.championId) {
+                    <button 
+                      type="button" 
+                      class="mastery-badge-btn" 
+                      [class.selected]="sessionService.state().userChampion === champ.championName"
+                      (click)="updateUserChampion(champ.championName)">
+                      <span class="badge-champ-name">{{ champ.championName }}</span>
+                      <span class="badge-champ-points">{{ formatPoints(champ.championPoints) }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- User Champion Input -->
+            <div class="select-group">
+              <label for="userChamp">User Champion (Ally)</label>
+              <div class="custom-select-container">
+                <input 
+                  id="userChamp"
+                  type="text" 
+                  placeholder="Search all champions..." 
+                  [ngModel]="userSearchQuery()" 
+                  (ngModelChange)="onUserSearchChange($event)"
+                  (focus)="showUserDropdown.set(true)"
+                  (blur)="hideDropdownWithDelay('user')"
+                  class="search-input"
+                  autocomplete="off"
+                />
+                @if (showUserDropdown() && filteredUserChampions().length > 0) {
+                  <ul class="dropdown-list animate-fade">
+                    @for (champ of filteredUserChampions(); track champ) {
+                      <li (mousedown)="selectUserChampion(champ)">
+                        {{ champ }}
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            </div>
+
+            <!-- Opponent Champion Input -->
+            <div class="select-group">
+              <label for="opponentChamp">Opponent Champion (Enemy)</label>
+              <div class="custom-select-container">
+                <input 
+                  id="opponentChamp"
+                  type="text" 
+                  placeholder="Search enemy champion..." 
+                  [ngModel]="opponentSearchQuery()" 
+                  (ngModelChange)="onOpponentSearchChange($event)"
+                  (focus)="showOpponentDropdown.set(true)"
+                  (blur)="hideDropdownWithDelay('opponent')"
+                  class="search-input"
+                  autocomplete="off"
+                />
+                @if (showOpponentDropdown() && filteredOpponentChampions().length > 0) {
+                  <ul class="dropdown-list animate-fade">
+                    @for (champ of filteredOpponentChampions(); track champ) {
+                      <li (mousedown)="selectOpponentChampion(champ)">
+                        {{ champ }}
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            </div>
+
+            <!-- Key Runes Dropdown -->
+            <div class="select-group">
+              <label for="key-rune-select">Primary Key Rune</label>
+              <div class="select-wrapper">
+                <select 
+                  id="key-rune-select"
+                  [ngModel]="sessionService.state().selectedRunes[0] || ''" 
+                  (ngModelChange)="updateRune($event)">
+                  <option value="" disabled selected>Select Keystone Rune...</option>
+                  @for (rune of runes; track rune) {
+                    <option [value]="rune">{{ rune }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuration Status Overview -->
+          <div class="selection-summary">
+            <h3>Current Draft Configuration</h3>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span class="item-label">Ally</span>
+                <span class="item-val">{{ sessionService.state().userChampion || 'Not Selected' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="item-label">Enemy</span>
+                <span class="item-val">{{ sessionService.state().opponentChampion || 'Not Selected' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="item-label">Rune</span>
+                <span class="item-val">{{ sessionService.state().selectedRunes[0] || 'Not Selected' }}</span>
+              </div>
+            </div>
+            
+            <button 
+              type="button"
+              class="primary-action-btn" 
+              [disabled]="!sessionService.state().userChampion || !sessionService.state().opponentChampion"
+              (click)="setPhase(ActivePhase.InGame)">
+              Lock In & Start Game
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- VIEW 2: InGame (Combat Phase) -->
+    @if (sessionService.state().activePhase === ActivePhase.InGame) {
+      <div class="phase-view in-game-view animate-fade">
+        <!-- Live Match Info Strip -->
+        <div class="live-match-strip">
+          <div class="matchup-box">
+            <span class="champ-label ally">{{ sessionService.state().userChampion || 'Ally' }}</span>
+            <span class="vs-text">vs</span>
+            <span class="champ-label enemy">{{ sessionService.state().opponentChampion || 'Enemy' }}</span>
+          </div>
+          <div class="rune-strip">
+            Keystone: <strong>{{ sessionService.state().selectedRunes[0] || 'None' }}</strong>
+          </div>
+        </div>
+
+        <!-- Large Macro Toggle Buttons -->
+        <div class="macro-controls-section">
+          <h3>Combat Macro Indicators</h3>
+          <p class="section-desc">Tap behavioral flags to update tactical threat matrices in real time.</p>
+
+          <div class="macro-buttons-stack">
+            <!-- Button 1: Enemy Aggressive -->
+            <button 
+              type="button"
+              class="macro-btn aggressive-btn" 
+              [class.active]="sessionService.state().enemyPlaystyle === EnemyPlaystyle.Aggressive"
+              (click)="togglePlaystyle(EnemyPlaystyle.Aggressive)">
+              <div class="btn-left">
+                <span class="btn-icon">🔥</span>
+                <span class="btn-label">Enemy Aggressive</span>
+              </div>
+              <span class="btn-checkbox"></span>
+            </button>
+
+            <!-- Button 2: Enemy Hiding Under Tower -->
+            <button 
+              type="button"
+              class="macro-btn undertower-btn" 
+              [class.active]="sessionService.state().enemyPlaystyle === EnemyPlaystyle.UnderTower"
+              (click)="togglePlaystyle(EnemyPlaystyle.UnderTower)">
+              <div class="btn-left">
+                <span class="btn-icon">🛡️</span>
+                <span class="btn-label">Enemy Hiding Under Tower</span>
+              </div>
+              <span class="btn-checkbox"></span>
+            </button>
+
+            <!-- Button 3: Request Macro Advice -->
+            <button 
+              type="button"
+              class="macro-btn advice-trigger-btn"
+              [class.loading]="isGeneratingAdvice()"
+              [class.active]="sessionService.state().adviceRequested"
+              (click)="requestAdvice()">
+              <span class="btn-icon">👁️</span>
+              <span class="btn-label">
+                @if (isGeneratingAdvice()) {
+                  Generating Tactical Advice...
+                } @else {
+                  Request Macro Advice
+                }
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Advice Floating Panel / Dialog -->
+        @if (sessionService.state().adviceRequested) {
+          <div class="advice-panel-overlay animate-fade">
+            <div class="advice-dialog-card">
+              <div class="dialog-header">
+                <h3>Tactical AI Recommendation</h3>
+                <button class="close-dialog" (click)="dismissAdvice()">×</button>
+              </div>
+              
+              <div class="dialog-body">
+                @if (isGeneratingAdvice()) {
+                  <div class="advice-loader">
+                    <span class="spinner"></span>
+                    <p>Consulting Matchup Telemetry...</p>
+                  </div>
+                } @else {
+                  <div class="advice-content-text">
+                    {{ adviceText() }}
+                  </div>
+                }
+              </div>
+              
+              <div class="dialog-footer">
+                <button type="button" class="dismiss-btn" (click)="dismissAdvice()">Acknowledge</button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- VIEW 3: PostGame (Summary Phase) -->
+    @if (sessionService.state().activePhase === ActivePhase.PostGame) {
+      <div class="phase-view post-game-view animate-fade">
+        <div class="glass-card text-center">
+          <span class="summary-trophy">🏆</span>
+          <h2>Game Completed</h2>
+          <p class="summary-sub">Analysis session terminated. Review performance logs or return to queue.</p>
+
+          <div class="post-game-details">
+            <div class="detail-row">
+              <span>Champion Played:</span>
+              <strong>{{ sessionService.state().userChampion || 'N/A' }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Opponent Faced:</span>
+              <strong>{{ sessionService.state().opponentChampion || 'N/A' }}</strong>
+            </div>
+          </div>
+
+          <button 
+            type="button"
+            class="primary-action-btn gold-gradient" 
+            (click)="setPhase(ActivePhase.ChampSelect)">
+            Return to Draft Lobby
+          </button>
+        </div>
+      </div>
+    }
+    }
+
+  </main>
+</div>

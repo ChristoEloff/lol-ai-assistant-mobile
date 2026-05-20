@@ -1,0 +1,21 @@
+<div class="search-bar-container" [class.invalid]="isInvalid()">
+  <select class="region-select" [value]="selectedRegion()" (change)="onRegionChange($event)">
+    <option value="EUW1">EUW</option>
+    <option value="NA1">NA</option>
+    <option value="EUN1">EUNE</option>
+    <option value="BR1">BR</option>
+    <option value="KR">KR</option>
+  </select>
+
+  <input 
+    type="text" 
+    class="riot-id-input" 
+    [value]="riotIdQuery()"
+    (input)="onInputChange($event)"
+    (keyup.enter)="triggerSearch()" 
+    placeholder="RiotID#TAG" />
+
+  <button class="search-action-btn" (click)="triggerSearch()">
+    Search
+  </button>
+</div>
