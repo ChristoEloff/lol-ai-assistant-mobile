@@ -273,4 +273,22 @@
 @media (max-width: 600px) {
   .abilities-row { grid-template-columns: repeat(2, 1fr); }
   .champ-stats-bar { flex-wrap: wrap; }
+  .hero-name { font-size: 1.6rem; }
+  .hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .champ-icon {
+    width: 64px;
+    height: 64px;
+  }
+  .coaching-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .coaching-btn {
+    width: 100%;
+    text-align: center;
+    padding: 14px 20px;
+  }
 }

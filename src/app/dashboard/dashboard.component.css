@@ -568,6 +568,55 @@
   }
 }
 
+@media(max-width: 600px) {
+  .app-container {
+    padding: 12px;
+  }
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+  }
+  .header-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .header-nav {
+    margin-left: 0;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .nav-link {
+    padding: 8px 12px;
+  }
+  .brand h1 {
+    font-size: 1.3rem;
+  }
+  .glass-card {
+    padding: 16px;
+  }
+  .input-select-container input, .custom-select-container input, .add-rune-wrapper input {
+    padding: 12px 14px;
+    min-height: 44px;
+  }
+  .gold-button {
+    min-height: 44px;
+  }
+  .phase-selector-grid, .playstyle-badges-grid {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-col {
+    gap: 16px;
+  }
+  .connection-status {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* Mastery Picks Container & Badges */
 .mastery-picks-container {
   margin-bottom: 20px;

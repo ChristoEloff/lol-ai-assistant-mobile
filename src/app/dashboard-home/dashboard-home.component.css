@@ -102,6 +102,22 @@
   flex-direction: column;
 }
 
+@media (max-width: 600px) {
+  .dashboard-home-container {
+    padding: 12px;
+  }
+  .glass-card {
+    padding: 16px;
+    min-height: auto;
+  }
+  .search-input {
+    min-height: 44px;
+  }
+  .search-btn {
+    min-height: 44px;
+  }
+}
+
 .glass-card:hover {
   transform: translateY(-2px);
   border-color: rgba(255, 255, 255, 0.15);

@@ -483,3 +483,23 @@
   .match-header-banner { flex-direction: column; align-items: flex-start; }
   .match-detail-page { padding: 16px; }
 }
+
+@media (max-width: 600px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .champ-name { font-size: 1.5rem; }
+  .kda-score { font-size: 1.4rem; }
+  .table-header, .table-row {
+    grid-template-columns: 2fr 1.2fr 1fr;
+  }
+  .col-gold, .col-cs, .col-vision {
+    display: none;
+  }
+  .review-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .request-review-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
