@@ -2,8 +2,10 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ProfileSearchBarComponent } from '../profile-search-bar/profile-search-bar.component';
 import { GameSessionService } from '../services/game-session.service';
+import { environment } from '../../environments/environment';
 
 interface UserProfile {
   puuid: string;
@@ -37,6 +39,16 @@ interface UserProfile {
     deaths: number;
     assists: number;
     win: boolean;
+    participants: Array<{
+      championName: string;
+      riotIdGameName: string;
+      riotIdTagline: string;
+      teamId: number;
+      kills: number;
+      deaths: number;
+      assists: number;
+      win: boolean;
+    }>;
   }>;
   activeGame: {
     gameMode: string;
@@ -62,6 +74,7 @@ interface MetaChampion {
 export class DashboardHomeComponent implements OnInit {
   private http = inject(HttpClient);
   private sessionService = inject(GameSessionService);
+  private router = inject(Router);
   
   public riotId = signal<string>('Provita8#EUW');
   public selectedRegion = signal<string>('EUW1');
@@ -99,7 +112,7 @@ export class DashboardHomeComponent implements OnInit {
     this.loadingProfile.set(true);
     this.loadingMeta.set(true);
     
-    const profileUrl = `http://localhost:8080/api/profile?riotId=${encodeURIComponent(this.riotId())}&region=${this.selectedRegion()}`;
+    const profileUrl = `${environment.apiBaseUrl}/api/profile?riotId=${encodeURIComponent(this.riotId())}&region=${this.selectedRegion()}`;
     this.http.get<UserProfile>(profileUrl).subscribe({
       next: (profile) => {
         this.userProfile.set(profile);
@@ -112,7 +125,7 @@ export class DashboardHomeComponent implements OnInit {
       }
     });
 
-    const metaUrl = `http://localhost:8080/api/meta`;
+    const metaUrl = `${environment.apiBaseUrl}/api/meta`;
     this.http.get<MetaChampion[]>(metaUrl).subscribe({
       next: (meta) => {
         this.metaChampions.set(meta);
@@ -129,5 +142,18 @@ export class DashboardHomeComponent implements OnInit {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  public navigateToMatch(matchId: string) {
+    const puuid = this.userProfile()?.puuid ?? '';
+    this.router.navigate(['/match', matchId], { queryParams: { puuid } });
+  }
+
+  public navigateToChampion(championName: string) {
+    const puuid = this.userProfile()?.puuid ?? '';
+    const region = this.selectedRegion();
+    this.router.navigate(['/champion', encodeURIComponent(championName)], {
+      queryParams: { puuid, region }
+    });
   }
 }

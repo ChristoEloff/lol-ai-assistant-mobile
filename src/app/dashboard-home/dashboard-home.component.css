@@ -633,3 +633,116 @@
   border-color: rgba(200, 155, 60, 0.3);
   transform: translateY(-1px);
 }
+
+/* Clickable Match Rows */
+.match-item {
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.match-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateX(2px);
+}
+.match-item.win:hover { border-color: rgba(16,185,129,0.3); }
+.match-item.loss:hover { border-color: rgba(239,68,68,0.25); }
+.match-detail-arrow {
+  font-size: 1.2rem;
+  color: #4b5563;
+  margin-left: auto;
+  padding-right: 12px;
+  transition: color 0.2s, transform 0.2s;
+}
+.match-item:hover .match-detail-arrow {
+  color: #c89b3c;
+  transform: translateX(3px);
+}
+
+/* ===========================
+   Match Participant Roster
+   =========================== */
+.match-roster {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  flex-wrap: wrap;
+}
+.roster-team {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+.roster-vs {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #4b5563;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding-top: 2px;
+  flex-shrink: 0;
+  align-self: center;
+}
+.roster-entry {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+}
+.roster-champ {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+  flex-shrink: 0;
+}
+.roster-name {
+  font-size: 0.65rem;
+  color: #4b5563;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Highlight your own entry */
+.roster-you .roster-champ {
+  color: #f59e0b;
+  font-weight: 800;
+}
+.roster-you .roster-name {
+  color: #c89b3c;
+}
+/* Blue / Red side subtle tints */
+.blue-side .roster-champ { color: #60a5fa; }
+.blue-side .roster-you .roster-champ { color: #f59e0b; }
+.red-side .roster-champ { color: #f87171; }
+
+/* Mastery item clickable hover */
+.mastery-item {
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+.mastery-item:hover {
+  background: rgba(200,155,60,0.06);
+  border-color: rgba(200,155,60,0.25);
+  transform: translateX(3px);
+}
+.mastery-arrow {
+  font-size: 1.2rem;
+  color: #4b5563;
+  margin-left: auto;
+  padding-left: 8px;
+  transition: color 0.2s, transform 0.2s;
+  flex-shrink: 0;
+}
+.mastery-item:hover .mastery-arrow {
+  color: #c89b3c;
+  transform: translateX(3px);
+}

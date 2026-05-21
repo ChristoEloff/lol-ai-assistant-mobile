@@ -1,0 +1,283 @@
+/* Transparent Canvas */
+.overlay-container {
+  width: 100vw;
+  height: 100vh;
+  background: transparent !important;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  pointer-events: none; /* Let clicks pass through empty spaces to the game */
+}
+
+/* Standby Badge (Top Right) */
+.hud-standby-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(6, 8, 14, 0.9);
+  border: 1px solid rgba(200, 155, 60, 0.5);
+  box-shadow: 0 0 15px rgba(200, 155, 60, 0.15);
+  padding: 8px 14px;
+  border-radius: 4px;
+  pointer-events: auto; /* Active for interactions */
+}
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+.hud-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #c89b3c;
+  letter-spacing: 1.5px;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow-badge 2s infinite ease-in-out;
+}
+@keyframes pulse-glow-badge {
+  0% { opacity: 0.8; box-shadow: 0 0 8px rgba(200, 155, 60, 0.1); }
+  50% { opacity: 1; box-shadow: 0 0 15px rgba(200, 155, 60, 0.3); }
+  100% { opacity: 0.8; box-shadow: 0 0 8px rgba(200, 155, 60, 0.1); }
+}
+
+/* HUD Overlay Card (Top-Center Placement) */
+.hud-card-wrapper {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 460px;
+  pointer-events: auto; /* Active for user clicks */
+  z-index: 1000;
+}
+
+/* Solid Glassmorphism Card for Ultimate Contrast */
+.hud-card {
+  background: rgba(8, 11, 17, 0.96); /* High opacity to maintain legibility over chaotic battles */
+  border: 2px solid #c89b3c;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(200, 155, 60, 0.2), inset 0 0 15px rgba(200, 155, 60, 0.1);
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* Red Threat Override for Aggressive Playstyle */
+.hud-card.danger {
+  border-color: #ef4444;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(239, 68, 68, 0.25), inset 0 0 15px rgba(239, 68, 68, 0.1);
+}
+
+/* Card Header */
+.hud-card-header {
+  background-color: rgba(6, 8, 14, 0.9);
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(200, 155, 60, 0.2);
+}
+.hud-card.danger .hud-card-header {
+  border-bottom-color: rgba(239, 68, 68, 0.25);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hud-glitch-text {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #f3f4f6;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+}
+.hud-card.danger .hud-glitch-text {
+  color: #f87171;
+  text-shadow: 0 0 5px rgba(239, 68, 68, 0.4);
+}
+.telemetry-badge {
+  font-size: 0.55rem;
+  background-color: rgba(200, 155, 60, 0.12);
+  border: 1px solid rgba(200, 155, 60, 0.3);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #c89b3c;
+  font-weight: 700;
+}
+.hud-card.danger .telemetry-badge {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
+/* Close Cross Button */
+.hud-close-btn {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.hud-close-btn:hover {
+  color: #f3f4f6;
+}
+
+/* Status Telemetry Info Strip */
+.hud-telemetry-row {
+  display: flex;
+  background-color: rgba(4, 5, 8, 0.5);
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+.telemetry-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.t-label {
+  font-size: 0.55rem;
+  color: #6b7280;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.t-val {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #e5e7eb;
+}
+.highlight-playstyle {
+  color: #c89b3c;
+}
+.hud-card.danger .highlight-playstyle {
+  color: #ef4444;
+}
+
+/* Body Content Area */
+.hud-card-body {
+  padding: 18px 20px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+}
+
+/* AI Scanner Loader */
+.hud-scanner {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+.hud-scanner p {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #9ca3af;
+  text-align: center;
+}
+.scanner-bar {
+  height: 2px;
+  width: 100%;
+  background-color: rgba(200, 155, 60, 0.1);
+  position: relative;
+  overflow: hidden;
+  border-radius: 1px;
+}
+.hud-card.danger .scanner-bar {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+.scanner-bar::after {
+  content: '';
+  position: absolute;
+  left: -50%;
+  height: 100%;
+  width: 50%;
+  background: linear-gradient(90deg, transparent, #c89b3c, transparent);
+  animation: scan-loop 1.2s infinite ease-in-out;
+}
+.hud-card.danger .scanner-bar::after {
+  background: linear-gradient(90deg, transparent, #ef4444, transparent);
+}
+
+@keyframes scan-loop {
+  0% { left: -50%; }
+  100% { left: 100%; }
+}
+
+/* Tactical Text Output */
+.advice-text-block {
+  width: 100%;
+}
+.advice-para {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #f3f4f6;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95); /* Heavy shadow to counter bright gaming backgrounds */
+}
+
+/* Card Footer Actions */
+.hud-card-footer {
+  padding: 10px 16px;
+  background-color: rgba(6, 8, 14, 0.85);
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.hud-footer-hint {
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: #4b5563;
+  letter-spacing: 1px;
+}
+.hud-btn-action {
+  background: rgba(200, 155, 60, 0.08);
+  border: 1px solid rgba(200, 155, 60, 0.3);
+  color: #c89b3c;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.hud-btn-action:hover {
+  background: rgba(200, 155, 60, 0.18);
+  border-color: #c89b3c;
+}
+.hud-card.danger .hud-btn-action {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+.hud-card.danger .hud-btn-action:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: #ef4444;
+}
+
+/* Animations */
+.animate-slide-in {
+  animation: slide-down 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes slide-down {
+  from { opacity: 0; transform: translate(-50%, -20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}

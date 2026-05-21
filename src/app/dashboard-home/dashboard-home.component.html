@@ -57,7 +57,8 @@
         <!-- Mastery Stats -->
         <div class="section-title">Top Champion Masteries</div>
         <div class="masteries-list">
-          <div class="mastery-item" *ngFor="let champ of userProfile()?.topChampions; let i = index">
+          <div class="mastery-item" *ngFor="let champ of userProfile()?.topChampions; let i = index"
+               (click)="navigateToChampion(champ.championName)">
             <div class="mastery-rank">#{{ i + 1 }}</div>
             <div class="mastery-info">
               <span class="champ-name">{{ champ.championName }}</span>
@@ -66,6 +67,7 @@
             <div class="mastery-lvl">
               <span>Lvl {{ champ.championLevel }}</span>
             </div>
+            <span class="mastery-arrow">&#8250;</span>
           </div>
         </div>
       </div>
@@ -107,7 +109,10 @@
         <!-- Recent Matches -->
         <div class="section-title">Recent Matches</div>
         <div class="matches-list">
-          <div class="match-item" *ngFor="let match of userProfile()?.recentMatches" [class.win]="match.win" [class.loss]="!match.win">
+          <div class="match-item" *ngFor="let match of userProfile()?.recentMatches" 
+               [class.win]="match.win" [class.loss]="!match.win"
+               (click)="navigateToMatch(match.matchId)"
+               style="cursor:pointer">
             <div class="match-bar"></div>
             <div class="match-body">
               <div class="match-meta-row">
@@ -120,7 +125,30 @@
                 <span class="match-kda">{{ match.kills }} / {{ match.deaths }} / {{ match.assists }}</span>
                 <span class="match-time">{{ match.gameMode }} ({{ formatDuration(match.gameDurationSeconds) }})</span>
               </div>
+              <!-- Mini participant roster -->
+              @if (match.participants.length) {
+                <div class="match-roster">
+                  <div class="roster-team blue-side">
+                    @for (p of match.participants | slice:0:5; track p.championName) {
+                      <span class="roster-entry" [class.roster-you]="p.championName === match.championName && p.teamId === 100">
+                        <span class="roster-champ">{{ p.championName }}</span>
+                        <span class="roster-name">{{ p.riotIdGameName }}</span>
+                      </span>
+                    }
+                  </div>
+                  <span class="roster-vs">vs</span>
+                  <div class="roster-team red-side">
+                    @for (p of match.participants | slice:5:10; track p.championName) {
+                      <span class="roster-entry">
+                        <span class="roster-champ">{{ p.championName }}</span>
+                        <span class="roster-name">{{ p.riotIdGameName }}</span>
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
             </div>
+            <span class="match-detail-arrow">›</span>
           </div>
           <div *ngIf="userProfile()?.recentMatches?.length === 0" class="no-data-msg">
             No recent matches found.

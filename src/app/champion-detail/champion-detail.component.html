@@ -1,0 +1,240 @@
+<div class="champ-page">
+
+  <div class="back-nav">
+    <button class="back-btn" (click)="goBack()">&#8592; Back to Stats &amp; Meta</button>
+  </div>
+
+  @if (loading()) {
+    <div class="page-loader">
+      <div class="hex-spinner"></div>
+      <p>Loading Champion Data...</p>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-banner">&#9888;&#65039; {{ error() }}</div>
+  }
+
+  @if (!loading() && detail(); as d) {
+
+    <!-- HERO SECTION -->
+    <div class="hero-section" [style.backgroundImage]="'url(' + d.splashUrl + ')'">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <div class="hero-left">
+          <img class="champ-icon" [src]="d.imageUrl" [alt]="d.championName" />
+          <div class="hero-text">
+            <h1 class="hero-name">{{ d.championName }}</h1>
+            <p class="hero-title">{{ d.championTitle }}</p>
+            <div class="hero-tags">
+              @for (tag of d.tags; track tag) {
+                <span class="tag-badge">{{ tag }}</span>
+              }
+            </div>
+          </div>
+        </div>
+        @if (d.masteryData) {
+          <div class="mastery-badge">
+            <span class="mastery-lvl-big">M{{ d.masteryData.championLevel }}</span>
+            <span class="mastery-pts">{{ formatPoints(d.masteryData.championPoints) }} pts</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- LORE -->
+    @if (d.lore) {
+      <div class="lore-card">
+        <h3 class="section-heading">&#128214; Champion Lore</h3>
+        <p class="lore-text">{{ d.lore }}</p>
+      </div>
+    }
+
+    <!-- ABILITIES -->
+    <div class="abilities-section">
+      <h3 class="section-heading">&#9889; Abilities</h3>
+      <div class="abilities-row">
+        @for (spell of allSpells(); track spell.key) {
+          <div class="ability-card">
+            <div class="ability-key-badge" [class]="'key-' + spell.key.toLowerCase()">{{ spell.key }}</div>
+            <img class="ability-icon" [src]="spell.iconUrl" [alt]="spell.name"
+                 onerror="this.style.opacity='0'" />
+            <div class="ability-info">
+              <span class="ability-name">{{ spell.name }}</span>
+              <span class="ability-desc">{{ spell.description }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- CHAMPION STATS -->
+    @if (stats(); as s) {
+      <div class="champ-stats-bar">
+        <div class="cstat">
+          <span class="cstat-label">Games</span>
+          <span class="cstat-val">{{ s.played }}</span>
+        </div>
+        <div class="cstat">
+          <span class="cstat-label">Win Rate</span>
+          <span class="cstat-val" [class.positive]="s.winRate >= 55" [class.negative]="s.winRate < 45">{{ s.winRate }}%</span>
+        </div>
+        <div class="cstat">
+          <span class="cstat-label">W / L</span>
+          <span class="cstat-val"><span class="win-num">{{ s.wins }}</span> / <span class="loss-num">{{ s.losses }}</span></span>
+        </div>
+        <div class="cstat">
+          <span class="cstat-label">Avg KDA</span>
+          <span class="cstat-val">{{ s.avgK }} / {{ s.avgD }} / {{ s.avgA }}</span>
+        </div>
+        <div class="cstat">
+          <span class="cstat-label">KDA Ratio</span>
+          <span class="cstat-val" [class.positive]="+s.kda >= 3">{{ s.kda }}</span>
+        </div>
+      </div>
+    }
+
+    <!-- MATCH HISTORY -->
+    <div class="matches-section">
+      <h3 class="section-heading">&#127918; Match History on {{ d.championName }}</h3>
+      @if (d.championMatches.length === 0) {
+        <div class="no-data">No recent matches found on this champion.</div>
+      }
+      <div class="matches-list">
+        @for (match of d.championMatches; track match.matchId) {
+          <div class="match-row" [class.win-row]="match.win" [class.loss-row]="!match.win"
+               (click)="navigateToMatch(match.matchId)">
+            <div class="match-main">
+              <div class="match-top-row">
+                <span class="match-outcome-chip" [class.chip-win]="match.win" [class.chip-loss]="!match.win">
+                  {{ match.win ? 'WIN' : 'LOSS' }}
+                </span>
+                <span class="match-kda-text">{{ match.kills }} / {{ match.deaths }} / {{ match.assists }}</span>
+                <span class="match-dur">{{ match.gameMode }} &middot; {{ formatDuration(match.gameDurationSeconds) }}</span>
+              </div>
+              @if (match.participants && match.participants.length) {
+                <div class="match-roster">
+                  <div class="roster-side blue-side">
+                    @for (p of match.participants.slice(0, 5); track p.championName) {
+                      <span class="rp" [class.rp-you]="p.championName === match.championName && p.teamId === 100">
+                        {{ p.championName }} <em>{{ p.riotIdGameName }}</em>
+                      </span>
+                    }
+                  </div>
+                  <span class="roster-vs">vs</span>
+                  <div class="roster-side red-side">
+                    @for (p of match.participants.slice(5, 10); track p.championName) {
+                      <span class="rp">{{ p.championName }} <em>{{ p.riotIdGameName }}</em></span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+            <span class="match-arrow">&#8250;</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- AI COACHING PANEL -->
+    <div class="coaching-panel">
+      <div class="coaching-header">
+        <div class="coaching-title-block">
+          <span class="ai-icon">&#129302;</span>
+          <div>
+            <h3>Personalised Coaching on {{ d.championName }}</h3>
+            <p>AI analysis of your strengths, weaknesses and a Challenger drill &mdash; based on your match history.</p>
+          </div>
+        </div>
+        @if (!coachingRequested()) {
+          <button class="coaching-btn" (click)="requestCoaching()">Get Coaching &#10024;</button>
+        }
+      </div>
+
+      @if (loadingCoaching()) {
+        <div class="coaching-loading">
+          <div class="hex-spinner small"></div>
+          <span>Challenger AI is reviewing your {{ d.championName }} games...</span>
+        </div>
+      }
+
+      @if (coachingError()) {
+        <div class="coaching-error">&#9888;&#65039; {{ coachingError() }}</div>
+      }
+
+      @if (!loadingCoaching() && parsedCoaching(); as c) {
+        <div class="coaching-sections">
+
+          <!-- Parsed sections (normal case) -->
+          @if (c.strengths) {
+            <div class="coaching-section strengths">
+              <div class="cs-header"><span>&#128079;</span><h4>Strengths</h4></div>
+              <div class="cs-lines">
+                @for (line of formatLines(c.strengths); track $index) {
+                  <div class="cs-line">
+                    <span class="cs-bullet">&#9656;</span>
+                    @if (isBoldLine(line)) {
+                      <span><strong>{{ getBoldPart(line) }}:</strong> {{ getRestPart(line) }}</span>
+                    } @else {
+                      <span>{{ cleanLine(line) }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          @if (c.weaknesses) {
+            <div class="coaching-section weaknesses">
+              <div class="cs-header"><span>&#127919;</span><h4>Key Weaknesses</h4></div>
+              <div class="cs-lines">
+                @for (line of formatLines(c.weaknesses); track $index) {
+                  <div class="cs-line">
+                    <span class="cs-bullet">&#9656;</span>
+                    @if (isBoldLine(line)) {
+                      <span><strong>{{ getBoldPart(line) }}:</strong> {{ getRestPart(line) }}</span>
+                    } @else {
+                      <span>{{ cleanLine(line) }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          @if (c.drill) {
+            <div class="coaching-section drill">
+              <div class="cs-header"><span>&#127947;</span><h4>Challenger Drill</h4></div>
+              <div class="cs-lines">
+                @for (line of formatLines(c.drill); track $index) {
+                  <div class="cs-line">
+                    <span class="cs-bullet">&#9656;</span>
+                    <span>{{ cleanLine(line) }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Raw fallback when section parsing fails -->
+          @if (c.raw) {
+            <div class="coaching-section raw-coaching">
+              <div class="cs-lines">
+                @for (line of formatLines(c.raw); track $index) {
+                  <div class="cs-line">
+                    @if (line.startsWith('###')) {
+                      <strong class="cs-section-title">{{ line.replace('###', '').trim() }}</strong>
+                    } @else {
+                      <span class="cs-bullet">&#9656;</span>
+                      <span>{{ cleanLine(line) }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+    </div>
+
+  }
+</div>

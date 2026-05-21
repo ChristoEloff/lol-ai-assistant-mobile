@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LoL AI Assistant</string>
+    <string name="title_activity_main">LoL AI Assistant</string>
+    <string name="package_name">com.lolai.assistant</string>
+    <string name="custom_url_scheme">com.lolai.assistant</string>
+</resources>

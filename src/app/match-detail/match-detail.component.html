@@ -1,0 +1,245 @@
+<div class="match-detail-page">
+
+  <!-- Back Button -->
+  <div class="back-nav">
+    <button class="back-btn" (click)="goBack()">
+      <span class="back-icon">←</span> Back to Stats &amp; Meta
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  @if (loadingMatch()) {
+    <div class="page-loader">
+      <div class="hex-spinner"></div>
+      <p>Loading Match Analysis...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (matchError()) {
+    <div class="error-banner">⚠️ {{ matchError() }}</div>
+  }
+
+  <!-- Match Content -->
+  @if (!loadingMatch() && match(); as m) {
+
+    <!-- Header Banner -->
+    <div class="match-header-banner" [class.win-banner]="m.win" [class.loss-banner]="!m.win">
+      <div class="banner-left">
+        <span class="outcome-label">{{ m.win ? '🏆 VICTORY' : '💀 DEFEAT' }}</span>
+        <span class="champ-name">{{ m.championName }}</span>
+        <span class="match-mode-tag">{{ m.gameMode }} · {{ formatDuration(m.gameDurationSeconds) }}</span>
+      </div>
+      <div class="banner-right">
+        <div class="kda-main">
+          <span class="kda-score">{{ m.kills }} / {{ m.deaths }} / {{ m.assists }}</span>
+          <span class="kda-ratio">{{ kda() | number:'1.2-2' }} KDA</span>
+        </div>
+        @if (multikillLabel()) {
+          <div class="multikill-badge">{{ multikillLabel() }}</div>
+        }
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">CS / min</span>
+        <span class="stat-value">{{ cs() }} <small>({{ csPerMin() | number:'1.1-1' }})</small></span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Gold Earned</span>
+        <span class="stat-value">{{ formatNumber(m.goldEarned) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Damage Dealt</span>
+        <span class="stat-value">{{ formatNumber(m.totalDamageDealtToChampions) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Damage Taken</span>
+        <span class="stat-value">{{ formatNumber(m.totalDamageTaken) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Vision Score</span>
+        <span class="stat-value">{{ m.visionScore }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Lane / Role</span>
+        <span class="stat-value">{{ m.lane || '—' }}</span>
+      </div>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="scoreboard-section">
+      <h3 class="section-heading">📋 Full Scoreboard</h3>
+      <div class="teams-wrapper">
+
+        <!-- Blue Team -->
+        <div class="team-panel blue-team">
+          <div class="team-header blue">
+            <span class="team-dot blue-dot"></span>
+            {{ blueTeam()[0].win ? '🏆 Blue Team — Victory' : '💀 Blue Team — Defeat' }}
+          </div>
+          <div class="team-table">
+            <div class="table-header">
+              <span>Summoner</span>
+              <span>KDA</span>
+              <span>Damage</span>
+              <span>Gold</span>
+              <span>CS</span>
+              <span>Vision</span>
+            </div>
+            @for (p of blueTeam(); track p.championName) {
+              <div class="table-row" [class.is-player]="p.championName === m.championName">
+                <span class="col-champ">
+                  @if (p.championName === m.championName) { <span class="you-tag">YOU</span> }
+                  <span class="champ-label">{{ p.championName }}</span>
+                  <span class="player-name">{{ p.riotIdGameName }}<span class="player-tag">#{{ p.riotIdTagline }}</span></span>
+                </span>
+                <span class="col-kda">{{ p.kills }}/{{ p.deaths }}/{{ p.assists }}</span>
+                <span class="col-dmg">{{ formatNumber(p.totalDamageDealtToChampions) }}</span>
+                <span class="col-gold">{{ formatNumber(p.goldEarned) }}</span>
+                <span class="col-cs">{{ p.minionsKilled }}</span>
+                <span class="col-vision">{{ p.visionScore }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Red Team -->
+        <div class="team-panel red-team">
+          <div class="team-header red">
+            <span class="team-dot red-dot"></span>
+            {{ redTeam()[0].win ? '🏆 Red Team — Victory' : '💀 Red Team — Defeat' }}
+          </div>
+          <div class="team-table">
+            <div class="table-header">
+              <span>Summoner</span>
+              <span>KDA</span>
+              <span>Damage</span>
+              <span>Gold</span>
+              <span>CS</span>
+              <span>Vision</span>
+            </div>
+            @for (p of redTeam(); track p.championName) {
+              <div class="table-row">
+                <span class="col-champ">
+                  <span class="champ-label">{{ p.championName }}</span>
+                  <span class="player-name">{{ p.riotIdGameName }}<span class="player-tag">#{{ p.riotIdTagline }}</span></span>
+                </span>
+                <span class="col-kda">{{ p.kills }}/{{ p.deaths }}/{{ p.assists }}</span>
+                <span class="col-dmg">{{ formatNumber(p.totalDamageDealtToChampions) }}</span>
+                <span class="col-gold">{{ formatNumber(p.goldEarned) }}</span>
+                <span class="col-cs">{{ p.minionsKilled }}</span>
+                <span class="col-vision">{{ p.visionScore }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- AI Review Panel -->
+    <div class="ai-review-panel">
+      <div class="review-header">
+        <div class="review-title-block">
+          <span class="ai-icon">🤖</span>
+          <div>
+            <h3>Challenger AI Coach Review</h3>
+            <p>Get personalised Challenger-level feedback on your performance in this match.</p>
+          </div>
+        </div>
+        @if (!reviewRequested()) {
+          <button class="request-review-btn" (click)="requestReview()">
+            Generate AI Review ✨
+          </button>
+        }
+      </div>
+
+      @if (loadingReview()) {
+        <div class="review-loading">
+          <div class="hex-spinner small"></div>
+          <span>Challenger AI is analysing your performance...</span>
+        </div>
+      }
+
+      @if (reviewError()) {
+        <div class="review-error">⚠️ {{ reviewError() }}</div>
+      }
+
+      @if (!loadingReview() && parsedReviewSections(); as sections) {
+        <div class="review-sections">
+
+          <!-- Applause -->
+          @if (sections.applause) {
+            <div class="review-section applause-section">
+              <div class="review-section-header">
+                <span class="section-emoji">👏</span>
+                <h4>Applause</h4>
+              </div>
+              <div class="review-lines">
+                @for (line of formatLines(sections.applause); track $index) {
+                  <div class="review-line">
+                    <span class="line-bullet">▸</span>
+                    <span class="line-text">
+                      @if (isBoldLine(line)) {
+                        <strong>{{ getBoldPart(line) }}:</strong> {{ getRestPart(line) }}
+                      } @else {
+                        {{ cleanLine(line) }}
+                      }
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Critique -->
+          @if (sections.critique) {
+            <div class="review-section critique-section">
+              <div class="review-section-header">
+                <span class="section-emoji">🔍</span>
+                <h4>Constructive Criticism</h4>
+              </div>
+              <div class="review-lines">
+                @for (line of formatLines(sections.critique); track $index) {
+                  <div class="review-line">
+                    <span class="line-bullet">▸</span>
+                    <span class="line-text">
+                      @if (isBoldLine(line)) {
+                        <strong>{{ getBoldPart(line) }}:</strong> {{ getRestPart(line) }}
+                      } @else {
+                        {{ cleanLine(line) }}
+                      }
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Tactical Focus -->
+          @if (sections.focus) {
+            <div class="review-section focus-section">
+              <div class="review-section-header">
+                <span class="section-emoji">💡</span>
+                <h4>Tactical Focus for Next Game</h4>
+              </div>
+              <div class="review-lines">
+                @for (line of formatLines(sections.focus); track $index) {
+                  <div class="review-line">
+                    <span class="line-bullet">▸</span>
+                    <span class="line-text">{{ cleanLine(line) }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+    </div>
+
+  }
+</div>

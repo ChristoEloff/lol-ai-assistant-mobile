@@ -1,12 +1,16 @@
 {
   "name": "mobile-app",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "mobile:build": "ng build && npx cap sync android",
+    "mobile:open": "npx cap open android",
+    "mobile:apk": "cd android && .\\gradlew.bat assembleDebug",
+    "mobile:apk:release": "cd android && .\\gradlew.bat assembleRelease"
   },
   "private": true,
   "dependencies": {
@@ -17,6 +21,7 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
+    "@capacitor/android": "^8.3.4",
     "@capacitor/cli": "^8.3.4",
     "@capacitor/core": "^8.3.4",
     "rxjs": "~7.8.0",

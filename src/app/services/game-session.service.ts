@@ -1,6 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { GameSessionState, ActivePhase, EnemyPlaystyle } from '../models/game-session';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -30,9 +31,8 @@ export class GameSessionService {
   public isReconnecting = signal<boolean>(false);
 
   constructor() {
-    // Dynamically resolve hostname so mobile devices on local Wi-Fi target the host IP
-    const wsHost = window.location.hostname || 'localhost';
-    this.wsUrl = `ws://${wsHost}:8080/ws`;
+    let wsUrlBase = environment.apiBaseUrl.replace('http://', 'ws://').replace('https://', 'wss://');
+    this.wsUrl = `${wsUrlBase}/ws`;
     this.connect();
     this.fetchChampions();
   }
@@ -42,7 +42,7 @@ export class GameSessionService {
   }
 
   public fetchChampions(): void {
-    this.http.get<string[]>('http://localhost:8080/api/profile/champions').subscribe({
+    this.http.get<string[]>(`${environment.apiBaseUrl}/api/profile/champions`).subscribe({
       next: (champs) => {
         this.allChampions.set(champs);
       },
@@ -57,7 +57,7 @@ export class GameSessionService {
       this.ws = new WebSocket(this.wsUrl);
 
       this.ws.onopen = () => {
-        console.log(`Connected to WebSocket server at ${this.wsUrl}`);
+        console.log('Connected to WebSocket server');
         this.isConnected.set(true);
         this.isReconnecting.set(false);
       };
@@ -83,7 +83,7 @@ export class GameSessionService {
         this.ws.close();
       };
     } catch (error) {
-      console.error(`Failed to initialize WebSocket connection to ${this.wsUrl}:`, error);
+      console.error('Failed to initialize WebSocket connection:', error);
       this.handleReconnect();
     }
   }

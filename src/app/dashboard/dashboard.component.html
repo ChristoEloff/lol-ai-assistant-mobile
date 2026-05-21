@@ -1,0 +1,252 @@
+  <!-- Main Grid Layout -->
+  <main class="dashboard-grid">
+    
+    <!-- Column 1: Champion State & Game Phase -->
+    <div class="dashboard-col">
+      
+      <!-- Champion Select Card -->
+      <section class="glass-card champ-card">
+        <div class="card-header">
+          <span class="card-icon">⚔️</span>
+          <h2>Tactical Matchup</h2>
+        </div>
+        <p class="card-desc">Specify current local and opposing champions to feed AI real-time recommendation matrices.</p>
+
+        <!-- Mastery Badges (Ally only) -->
+        @if (sessionService.userProfile()?.topChampions; as topChamps) {
+          <div class="mastery-picks-container">
+            <span class="picks-title">Top Mastery Picks:</span>
+            <div class="mastery-badges">
+              @for (champ of topChamps; track champ.championId) {
+                <button 
+                  type="button" 
+                  class="mastery-badge-btn" 
+                  [class.selected]="sessionService.state().userChampion === champ.championName"
+                  (click)="updateUserChampion(champ.championName)">
+                  <span class="badge-champ-name">{{ champ.championName }}</span>
+                  <span class="badge-champ-points">{{ formatPoints(champ.championPoints) }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="input-group-row">
+          <div class="input-wrapper">
+            <label for="userChamp">User Champion (Ally)</label>
+            <div class="custom-select-container">
+              <input 
+                id="userChamp"
+                type="text" 
+                placeholder="Search all champions..." 
+                [ngModel]="userSearchQuery()" 
+                (ngModelChange)="onUserSearchChange($event)"
+                (focus)="showUserDropdown.set(true)"
+                (blur)="hideDropdownWithDelay('user')"
+                autocomplete="off"
+              />
+              @if (showUserDropdown() && filteredUserChampions().length > 0) {
+                <ul class="dropdown-list">
+                  @for (champ of filteredUserChampions(); track champ) {
+                    <li (mousedown)="selectUserChampion(champ)">
+                      {{ champ }}
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group-row">
+          
+
+          <div class="input-wrapper">
+            <label for="opponentChamp">Opponent Champion (Enemy)</label>
+            <div class="custom-select-container">
+              <input 
+                id="opponentChamp"
+                type="text" 
+                placeholder="Search enemy champion..." 
+                [ngModel]="opponentSearchQuery()" 
+                (ngModelChange)="onOpponentSearchChange($event)"
+                (focus)="showOpponentDropdown.set(true)"
+                (blur)="hideDropdownWithDelay('opponent')"
+                autocomplete="off"
+              />
+              @if (showOpponentDropdown() && filteredOpponentChampions().length > 0) {
+                <ul class="dropdown-list">
+                  @for (champ of filteredOpponentChampions(); track champ) {
+                    <li (mousedown)="selectOpponentChampion(champ)">
+                      {{ champ }}
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick selection tags -->
+        <div class="quick-selectors">
+          <span class="quick-title">Quick Picks:</span>
+          <div class="tag-pool">
+            <button class="quick-pick-tag" (click)="updateUserChampion('Yasuo')">Yasuo</button>
+            <button class="quick-pick-tag" (click)="updateUserChampion('Lux')">Lux</button>
+            <button class="quick-pick-tag" (click)="updateUserChampion('Ezreal')">Ezreal</button>
+            <button class="quick-pick-tag" (click)="updateUserChampion('Zed')">Zed</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Active Phase Card -->
+      <section class="glass-card phase-card">
+        <div class="card-header">
+          <span class="card-icon">⏳</span>
+          <h2>Active Session Phase</h2>
+        </div>
+        <p class="card-desc">Synchronize analysis algorithms with the current state of client flow.</p>
+
+        <div class="phase-selector-grid">
+          <button 
+            type="button"
+            class="phase-btn champ-select" 
+            [class.active]="sessionService.state().activePhase === ActivePhase.ChampSelect"
+            (click)="setPhase(ActivePhase.ChampSelect)">
+            <span class="btn-indicator"></span>
+            <span class="btn-title">Champ Select</span>
+            <span class="btn-caption">Draft & Counterpick Analysis</span>
+          </button>
+
+          <button 
+            type="button"
+            class="phase-btn in-game" 
+            [class.active]="sessionService.state().activePhase === ActivePhase.InGame"
+            (click)="setPhase(ActivePhase.InGame)">
+            <span class="btn-indicator"></span>
+            <span class="btn-title">In Game</span>
+            <span class="btn-caption">Real-Time Threat Detection</span>
+          </button>
+
+          <button 
+            type="button"
+            class="phase-btn post-game" 
+            [class.active]="sessionService.state().activePhase === ActivePhase.PostGame"
+            (click)="setPhase(ActivePhase.PostGame)">
+            <span class="btn-indicator"></span>
+            <span class="btn-title">Post Game</span>
+            <span class="btn-caption">Performance Review & Summary</span>
+          </button>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Column 2: Runes & Enemy Playstyle -->
+    <div class="dashboard-col">
+      
+      <!-- Runes Configuration Card -->
+      <section class="glass-card runes-card">
+        <div class="card-header">
+          <span class="card-icon">⚡</span>
+          <h2>Selected Runes</h2>
+        </div>
+        <p class="card-desc">Define active keystone and secondary runes. Synchronized reactively with neural prediction engines.</p>
+
+        <!-- Current runes tags list -->
+        <div class="runes-list-container">
+          @if (sessionService.state().selectedRunes.length === 0) {
+            <div class="empty-state">No runes selected. Add one below or use a preset.</div>
+          } @else {
+            <div class="runes-flex">
+              @for (rune of sessionService.state().selectedRunes; track rune) {
+                <div class="rune-tag">
+                  <span class="rune-text">{{ rune }}</span>
+                  <button class="remove-rune-btn" (click)="removeRune(rune)" aria-label="Remove rune">×</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Add rune control -->
+        <div class="add-rune-wrapper">
+          <input 
+            type="text" 
+            placeholder="Type rune name (e.g. Conqueror)..." 
+            [(ngModel)]="newRuneName" 
+            (keyup.enter)="addRune()"
+          />
+          <button class="gold-button" (click)="addRune()">Add Rune</button>
+        </div>
+
+        <!-- Presets -->
+        <div class="presets-section">
+          <span class="quick-title">Popular Presets:</span>
+          <div class="tag-pool">
+            @for (rune of popularRunes; track rune) {
+              <button 
+                class="preset-tag" 
+                [disabled]="sessionService.state().selectedRunes.includes(rune)"
+                (click)="selectPopularRune(rune)">
+                + {{ rune }}
+              </button>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- Enemy Playstyle Card -->
+      <section class="glass-card playstyle-card">
+        <div class="card-header">
+          <span class="card-icon">👁️</span>
+          <h2>Enemy Lane Playstyle</h2>
+        </div>
+        <p class="card-desc">Log opponent's behavioral patterns. Updates adapt client-side recommendation telemetry.</p>
+
+        <div class="playstyle-badges-grid">
+          <button 
+            type="button"
+            class="playstyle-badge-btn aggressive" 
+            [class.active]="sessionService.state().enemyPlaystyle === EnemyPlaystyle.Aggressive"
+            (click)="setPlaystyle(EnemyPlaystyle.Aggressive)">
+            <span class="badge-icon">🔥</span>
+            <span class="badge-label">Aggressive</span>
+            <span class="badge-desc">Forcing trades, positioning forward</span>
+          </button>
+
+          <button 
+            type="button"
+            class="playstyle-badge-btn passive" 
+            [class.active]="sessionService.state().enemyPlaystyle === EnemyPlaystyle.Passive"
+            (click)="setPlaystyle(EnemyPlaystyle.Passive)">
+            <span class="badge-icon">💧</span>
+            <span class="badge-label">Passive</span>
+            <span class="badge-desc">Avoiding contact, focusing on CS</span>
+          </button>
+
+          <button 
+            type="button"
+            class="playstyle-badge-btn undertower" 
+            [class.active]="sessionService.state().enemyPlaystyle === EnemyPlaystyle.UnderTower"
+            (click)="setPlaystyle(EnemyPlaystyle.UnderTower)">
+            <span class="badge-icon">🛡️</span>
+            <span class="badge-label">Under Tower</span>
+            <span class="badge-desc">Freezing lane, playing defensive</span>
+          </button>
+
+          <button 
+            type="button"
+            class="playstyle-badge-btn neutral" 
+            [class.active]="sessionService.state().enemyPlaystyle === EnemyPlaystyle.Neutral"
+            (click)="setPlaystyle(EnemyPlaystyle.Neutral)">
+            <span class="badge-icon">⚖️</span>
+            <span class="badge-label">Neutral</span>
+            <span class="badge-desc">Standard spacing, balancing CS/trade</span>
+          </button>
+        </div>
+      </section>
+
+    </div>
+
+  </main>

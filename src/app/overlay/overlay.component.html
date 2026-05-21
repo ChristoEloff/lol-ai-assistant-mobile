@@ -1,0 +1,65 @@
+<div class="overlay-container">
+  
+  <!-- Tiny HUD Standby Indicator (Always visible in background when overlay is passive) -->
+  @if (!sessionService.state().adviceRequested) {
+    <div class="hud-standby-badge animate-pulse-glow">
+      <span class="pulse-dot"></span>
+      <span class="hud-label">AI INTEL STANDBY</span>
+    </div>
+  }
+
+  <!-- Active Advice Card (Renders when Advice is Requested) -->
+  @if (sessionService.state().adviceRequested) {
+    <div class="hud-card-wrapper animate-slide-in">
+      <div class="hud-card" [class.danger]="sessionService.state().enemyPlaystyle === 'Aggressive'">
+        
+        <!-- Header Strip -->
+        <div class="hud-card-header">
+          <div class="header-left">
+            <span class="hud-glitch-text" data-text="TACTICAL INTEL">TACTICAL INTEL</span>
+            <span class="telemetry-badge">LIVE HUD</span>
+          </div>
+          <button class="hud-close-btn" (click)="dismissAdvice()" aria-label="Dismiss Advice">×</button>
+        </div>
+
+        <!-- Telemetry Info Row -->
+        <div class="hud-telemetry-row">
+          <div class="telemetry-item">
+            <span class="t-label">ALLY</span>
+            <span class="t-val">{{ sessionService.state().userChampion || 'N/A' }}</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="t-label">ENEMY</span>
+            <span class="t-val">{{ sessionService.state().opponentChampion || 'N/A' }}</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="t-label">BEHAVIOR</span>
+            <span class="t-val highlight-playstyle">{{ sessionService.state().enemyPlaystyle }}</span>
+          </div>
+        </div>
+
+        <!-- Main Advice Content -->
+        <div class="hud-card-body">
+          @if (isCalculating()) {
+            <div class="hud-scanner">
+              <span class="scanner-bar"></span>
+              <p>PARSING WAVE TELEMETRY...</p>
+            </div>
+          } @else {
+            <div class="advice-text-block">
+              <p class="advice-para">{{ adviceText() }}</p>
+            </div>
+          }
+        </div>
+
+        <!-- Footer Keybind Hint -->
+        <div class="hud-card-footer">
+          <span class="hud-footer-hint">SYSTEM STATUS: SYNCED</span>
+          <button type="button" class="hud-btn-action" (click)="dismissAdvice()">DISMISS</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

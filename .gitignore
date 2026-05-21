@@ -68,3 +68,7 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Ignore environment variables containing secrets
+src/environments/environment*.ts
+!src/environments/environment.example.ts
